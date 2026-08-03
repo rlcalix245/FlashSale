@@ -1,0 +1,6 @@
+@FlashSale.Generator_HostAddress = http://localhost:5069
+
+GET {{FlashSale.Generator_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
