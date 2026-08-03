@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="FlashSale.Api/FlashSale.Api.csproj" />
+  <Project Path="FlashSale.Consumer/FlashSale.Consumer.csproj" />
   <Project Path="FlashSale.Generator/FlashSale.Generator.csproj" />
+  <Project Path="FlashSale.Shared/FlashSale.Shared.csproj" />
 </Solution>
