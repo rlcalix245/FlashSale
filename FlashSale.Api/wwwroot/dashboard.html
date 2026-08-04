@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FlashSale - Balance de stock</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #222;
+            color: white;
+        }
+
+        .Normal {
+            color: #2a7a2a;
+            font-weight: bold;
+        }
+
+        .Riesgo {
+            color: #b8860b;
+            font-weight: bold;
+        }
+
+        .Sobreventa {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .resumen {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .card {
+            background: #f4f4f4;
+            padding: 12px 20px;
+            border-radius: 8px;
+        }
+
+            .card b {
+                display: block;
+                font-size: 22px;
+            }
+
+        button {
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>FlashSale — Balance de stock por producto</h1>
+    <button onclick="cargarBalance()">Actualizar ahora</button>
+    <span id="ultimaActualizacion" style="margin-left: 12px; color: #666;"></span>
+
+    <div class="resumen" id="resumen"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoria</th>
+                <th>Stock inicial</th>
+                <th>Intentos</th>
+                <th>Unidades solicitadas</th>
+                <th>Balance actual</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBalance"></tbody>
+    </table>
+
+    <script>
+async function cargarBalance() {
+  const res = await fetch('/api/balance');
+  const datos = await res.json();
+
+  const tbody = document.getElementById('tablaBalance');
+  tbody.innerHTML = '';
+  let riesgo = 0, sobreventa = 0, intentosTotales = 0;
+
+  datos.forEach(p => {
+    intentosTotales += p.intentosAcumulados;
+    if (p.estado === 'Riesgo') riesgo++;
+    if (p.estado === 'Sobreventa') sobreventa++;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.productName}</td>
+        <td>${p.category}</td>
+        <td>${p.stockInicial}</td>
+        <td>${p.intentosAcumulados}</td>
+        <td>${p.unidadesSolicitadas}</td>
+        <td>${p.balanceActual}</td>
+        <td class="${p.estado}">${p.estado}</td>
+      </tr>`;
+  });
+
+  document.getElementById('resumen').innerHTML = `
+    <div class="card">Productos<b>${datos.length}</b></div>
+    <div class="card">Intentos totales<b>${intentosTotales}</b></div>
+    <div class="card">En riesgo<b>${riesgo}</b></div>
+    <div class="card">Sobreventa<b>${sobreventa}</b></div>
+  `;
+
+  document.getElementById('ultimaActualizacion').textContent =
+    'Actualizado: ' + new Date().toLocaleTimeString();
+}
+
+cargarBalance();
+setInterval(cargarBalance, 5000);
+    </script>
+</body>
+</html>

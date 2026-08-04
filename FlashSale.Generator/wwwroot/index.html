@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FlashSale - Generador de intentos de compra</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 640px;
+            margin: 40px auto;
+        }
+
+        fieldset {
+            margin-bottom: 24px;
+            padding: 16px;
+        }
+
+        label {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            box-sizing: border-box;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 12px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>FlashSale — Generador de intentos de compra</h1>
+
+    <fieldset>
+        <legend>Envio individual</legend>
+        <label>Producto</label>
+        <select id="productId"></select>
+        <label>Cantidad</label>
+        <input id="cantidad" type="number" value="1" min="1">
+        <label>Cliente ID (opcional)</label>
+        <input id="clienteId" placeholder="cliente_12345">
+        <button onclick="enviarIndividual()">Enviar intento</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Simulacion de pico (lote masivo)</legend>
+        <label>Cantidad de eventos</label>
+        <input id="loteCantidad" type="number" value="10000" min="1">
+        <label>Producto viral (opcional, fuerza demanda concentrada)</label>
+        <select id="productoViral">
+            <option value="">Ninguno (distribucion normal)</option>
+        </select>
+        <button onclick="dispararLote()">Disparar lote masivo</button>
+    </fieldset>
+
+    <h3>Resultado</h3>
+<pre id="resultado">Sin eventos enviados todavia.</pre>
+
+    <script>
+async function cargarCatalogo() {
+  const res = await fetch('/api/catalogo');
+  const catalogo = await res.json();
+  const sel = document.getElementById('productId');
+  const selViral = document.getElementById('productoViral');
+  catalogo.forEach(p => {
+    sel.innerHTML += `<option value="${p.productId}">${p.nombre}</option>`;
+    selViral.innerHTML += `<option value="${p.productId}">${p.nombre}</option>`;
+  });
+}
+cargarCatalogo();
+
+async function enviarIndividual() {
+  const body = {
+    productId: document.getElementById('productId').value,
+    clienteId: document.getElementById('clienteId').value || null,
+    cantidad: parseInt(document.getElementById('cantidad').value)
+  };
+  const res = await fetch('/api/intentos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  document.getElementById('resultado').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+async function dispararLote() {
+  const body = {
+    cantidad: parseInt(document.getElementById('loteCantidad').value),
+    productoViral: document.getElementById('productoViral').value || null
+  };
+  document.getElementById('resultado').textContent = 'Enviando lote...';
+  const res = await fetch('/api/intentos/lote', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  document.getElementById('resultado').textContent = JSON.stringify(await res.json(), null, 2);
+}
+    </script>
+</body>
+</html>
